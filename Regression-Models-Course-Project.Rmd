@@ -1,0 +1,131 @@
+---
+title: "Regression Models - Course Project"
+author: "Pavit Masson"
+date: "February 10, 2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Executive Summary
+
+We will be performing an analysis for Motor Trend, a magazine about the automobile industry. Looking at a data set of a collection of cars, they are interested in exploring the relationship between a set of variables and miles per gallon (MPG) (outcome). They are particularly interested in the following two questions:
+
+1. Is an automatic or manual transmission better for MPG?
+2. Quantify the difference between automatic and manual transmissions.
+
+Based on three different regression models, it is clear that manual transmission is better for MPG than automatic transmission. Our most reliable regression model (MPG dependent on transmission, weight, and gross horsepower) shows with reasonable confidence that manual transmission is better for MPG by about 2.084 (on average). 
+
+### Analysis
+
+First, we'll load the mtcars dataset and take a high-level look at it.
+
+```{r}
+library(datasets)
+data(mtcars)
+data <- mtcars
+str(data)
+```
+
+We can see that the data contains 32 observations on 11 variables. The variables translate to the following:
+
+* mpg	Miles/(US) gallon
+* cyl	Number of cylinders
+* disp	Displacement (cu.in.)
+* hp	Gross horsepower
+* drat	Rear axle ratio
+* wt	Weight (1000 lbs)
+* qsec	1/4 mile time
+* vs	Engine (0 = V-shaped, 1 = straight)
+* am	Transmission (0 = automatic, 1 = manual)
+* gear	Number of forward gears
+* carb	Number of carburetors
+
+We can factorize the variables vs (Engine) and am (Transmission) since they have 2 possible values.
+
+```{r}
+data$vs = as.factor(data$vs)
+data$am = as.factor(data$am)
+```
+
+Next, let's look at a summary of MPG for automatic (am = 0) vs. manual transmission (am = 1).
+
+```{r}
+# Automatic
+summary(subset(data, am == 0)$mpg)
+
+# Manual
+summary(subset(data, am == 1)$mpg)
+```
+
+At a glance we can see that the mean MPG is higher for manual transmission. This can also be seen graphically in the boxplot **A-1** in the Appendix.
+
+Next we'll look at correlations across all variables to see if other variables are correlated with MPG.
+
+```{r}
+t(cor(mtcars[-1], mtcars$mpg))
+```
+
+For our regression models, we'll examine MPG dependent on AM alone and MPG dependent on the next few highest correlated variables, which are cyl (number of cylinders), wt (weight), disp (displacement), and hp (gross horsepower).
+
+### Regression Models
+
+We will do two regression models, as follows:
+
+Reg 1 - MPG ~ AM (MPG dependent on AM)
+Reg 2 - MPG ~ AM + WT + CYL + DISP + HP (MPG dependent on WT, CYL, DISP, and HP)
+
+```{r}
+reg1 <- lm(mpg ~ am, mtcars)
+reg2 <- lm(mpg ~ am + wt + cyl + disp + hp, mtcars)
+```
+
+We can see from Appendix chart **A-2** the summary of reg 1. This shows that manual transmission is better than automatic for MPG by about 7.245, which is what we expected. When we include wt, cyl, disp, and hp (Appendix chart **A-3**) manual is still better, but only by 1.55.
+
+By excluding the less significant variables from the multivariate regression, we might be able to better quantify how much better manual transmission is than automatic for MPG. We can see from **A-3** that cyl and disp have low significance, so we will create a new model without those two variables. 
+
+```{r}
+reg3  <- lm(mpg ~ am + wt + hp, mtcars)
+```
+
+Based on the reg3 summary in **A-4** of the Appendix, we see that this model has more reliable significance codes. This makes reg3 the most accurate model compared to reg1 and reg2. The model summary shows that manual transmission is better than automatic by an average of about 2.084.
+
+### Conclusions
+
+To conclude, let's revisit the original two questions:
+
+**1. Is an automatic or manual transmission better for MPG?**
+
+As we can see above from the MPG mean and all three regression models that manual transmission is clearly better for MPG than automatic transmission, by varying degrees.
+
+**2. Quantify the difference between automatic and manual transmissions.**
+
+Our regression models have quantified how much better manual transmission is than automatic transmission by three different amounts:
+
+* 7.245 (reg 1)
+* 1.55 (reg 2)
+* 2.084 (reg 3)
+
+Since reg 3 is the most reliable from the three models, we can say with confidence that manual transmission is better than automatic transmission by approximately 2.084 on average.
+
+
+### Appendix
+
+#### A-1: MPG Boxplot per Transmission
+```{r}
+boxplot(mpg ~ am, data = data, col = c("red", "blue"), names = c("Automatic", "Manual"), xlab = "Transmission Type", ylab = "Miles per Gallon (MPG)", main = "MPG vs. Transmission")
+```
+#### A-2 Summary of Regression Model 1 (Single Regression, am)
+```{r}
+summary(reg1)
+```
+#### A-3 Summary of Regression Model 2 (Multivar Regression, am + wt + hp + cyl + disp)
+```{r}
+summary(reg2)
+```
+#### A-4 Summary of Regression Model 3 (Multivar Regression, am + wt + hp)
+```{r}
+summary(reg3)
+```
